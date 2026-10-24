@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: incubrix_service
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=IncuBrix Long-Tail Distribution Connector Service
+      - SIMULATION_MODE=true
+      - STORAGE_TYPE=s3
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
+      - S3_BUCKET_NAME=incubrix-artifacts
+      - GHOST_BASE_URL=http://ghost:2368
+      - LEMMY_BASE_URL=http://lemmy:8536
+    depends_on:
+      - minio
+      - ghost
+    volumes:
+      - ./data/evidence:/app/data/evidence
+      - ./storage_data:/app/storage_data
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: incubrix_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  ghost:
+    image: ghost:5-alpine
+    container_name: incubrix_ghost
+    ports:
+      - "2368:2368"
+    environment:
+      - NODE_ENV=development
+      - url=http://localhost:2368
+    restart: unless-stopped
+
+  lemmy:
+    image: python:3.11-slim
+    container_name: incubrix_lemmy_mock
+    ports:
+      - "8536:8536"
+    command: >
+      python -c "
+      import http.server, socketserver, json
+      class H(http.server.BaseHTTPRequestHandler):
+          def do_POST(self):
+              self.send_response(200)
+              self.send_header('Content-Type', 'application/json')
+              self.end_headers()
+              self.wfile.write(json.dumps({'post_view': {'post': {'id': 101, 'name': 'lemmy_test_post'}}}).encode())
+          def do_GET(self):
+              self.send_response(200)
+              self.send_header('Content-Type', 'application/json')
+              self.end_headers()
+              self.wfile.write(b'{\"status\": \"live\"}')
+      socketserver.TCPServer(('0.0.0.0', 8536), H).serve_forever()
+      "
+    restart: unless-stopped
+
+volumes:
+  minio_data:

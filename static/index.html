@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IncuBrix — Long-Tail Destination Network</title>
+  <meta name="description" content="Production-grade long-tail publishing connectors and automated rule-respecting distribution engine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="brand-name">IncuBrix <span class="brand-tag">DISTRIBUTION</span></span>
+      </div>
+      <div class="system-status-pill" id="system-status-badge">
+        <span class="status-dot pulse"></span>
+        <span id="system-status-text">SYSTEM HEALTHY • SIMULATION ACTIVE</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <nav class="nav-links">
+        <button class="nav-tab active" data-tab="tab-overview">Overview</button>
+        <button class="nav-tab" data-tab="tab-catalogue">Catalogue (165)</button>
+        <button class="nav-tab" data-tab="tab-publisher">Live Publisher</button>
+        <button class="nav-tab" data-tab="tab-recommender">AI Recommender</button>
+        <button class="nav-tab" data-tab="tab-certification">Certification Pack</button>
+        <button class="nav-tab" data-tab="tab-hardcases">Hard Cases</button>
+      </nav>
+      <a href="/docs" target="_blank" class="api-docs-btn">API Docs (OpenAPI 3.1) ↗</a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- TAB 1: OVERVIEW -->
+    <section id="tab-overview" class="tab-panel active">
+      <div class="hero-card">
+        <div class="hero-content">
+          <h1>Long-Tail Destination Network</h1>
+          <p>
+            Publish creators' content reliably into niche communities, forums, developer blogs, federated nodes, and partner webhooks with zero spam and strict rule enforcement.
+          </p>
+          <div class="hero-stats">
+            <div class="stat-box">
+              <span class="stat-number" id="stat-connectors-count">9</span>
+              <span class="stat-label">Active Connectors (Appendix A)</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-number" id="stat-destinations-count">165</span>
+              <span class="stat-label">Researched Destinations</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-number">100%</span>
+              <span class="stat-label">Automated Safe Cleanup (&lt;10m)</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-number" id="stat-precision-benchmark">88.0%</span>
+              <span class="stat-label">Recommender Precision@10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connector Grid -->
+      <h2 class="section-title">Connected Platform Engines</h2>
+      <div class="connectors-grid" id="connectors-grid-container">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+    <!-- TAB 2: CATALOGUE -->
+    <section id="tab-catalogue" class="tab-panel">
+      <div class="section-header-row">
+        <div>
+          <h2>Destination Catalogue (165 Researched Communities)</h2>
+          <p class="subtitle">Configuration-driven destinations. Adding forum #41 is a single configuration row.</p>
+        </div>
+        <div class="catalogue-actions">
+          <input type="text" id="catalogue-search-input" placeholder="Search by name, platform, tags..." class="search-input">
+          <select id="catalogue-category-filter" class="filter-select">
+            <option value="">All Categories</option>
+            <option value="ai">AI</option>
+            <option value="saas">SaaS</option>
+            <option value="video">Video</option>
+            <option value="marketing">Marketing</option>
+            <option value="creators">Creators</option>
+            <option value="founders">Founders</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="catalogue-table">
+          <thead>
+            <tr>
+              <th>Community Name</th>
+              <th>Platform</th>
+              <th>Category</th>
+              <th>Relevance</th>
+              <th>Frequency Cap</th>
+              <th>Promo Policy</th>
+              <th>Level</th>
+              <th>URL</th>
+            </tr>
+          </thead>
+          <tbody id="catalogue-tbody">
+            <!-- Injected via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: PUBLISHER -->
+    <section id="tab-publisher" class="tab-panel">
+      <div class="publisher-layout">
+        <div class="publisher-card">
+          <h2>Create Distribution Job</h2>
+          <p class="subtitle">Integration Standard 3: Async background jobs returning 202 with HMAC signing and idempotency.</p>
+          
+          <form id="publish-job-form">
+            <div class="form-group">
+              <label for="pub-destination-select">Target Destination</label>
+              <select id="pub-destination-select" class="form-control" required>
+                <!-- Populated via JS -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="pub-title">Content Title</label>
+              <input type="text" id="pub-title" class="form-control" value="Discussion: Modern Async Architecture for Creators" required>
+            </div>
+
+            <div class="form-group">
+              <label for="pub-body">Content Body</label>
+              <textarea id="pub-body" rows="6" class="form-control" required>We recently optimized our video transcoding and publishing pipelines. What are the key bottlenecks your teams have encountered when scaling background job queues?</textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="pub-tags">Audience Tags (comma separated)</label>
+              <input type="text" id="pub-tags" class="form-control" value="saas, architecture, python">
+            </div>
+
+            <div class="form-row-checkboxes">
+              <label class="checkbox-label">
+                <input type="checkbox" id="pub-is-promo">
+                <span>Is Promotional Content (Flags anti-spam rules)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="pub-ai-generated" checked>
+                <span>AI-Assisted Content (Tests disclosure injection)</span>
+              </label>
+            </div>
+
+            <button type="submit" class="primary-btn" id="btn-submit-publish">
+              <span>🚀 Submit Distribution Job</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Live Job Monitor Card -->
+        <div class="monitor-card">
+          <h2>Pipeline Execution Monitor</h2>
+          <div id="job-monitor-empty" class="monitor-empty">
+            <span class="empty-icon">⏳</span>
+            <p>Submit a distribution job or trigger certification to observe live pipeline execution.</p>
+          </div>
+
+          <div id="job-monitor-active" class="monitor-active" style="display: none;">
+            <div class="job-header-info">
+              <div class="job-id-pill" id="monitor-job-id">job_12345</div>
+              <div class="job-status-pill" id="monitor-job-status">RUNNING</div>
+            </div>
+
+            <div class="progress-container">
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="monitor-progress-fill" style="width: 0%;"></div>
+              </div>
+              <div class="progress-labels">
+                <span id="monitor-step-label">Initializing pipeline...</span>
+                <span id="monitor-progress-percent">0%</span>
+              </div>
+            </div>
+
+            <div class="pipeline-steps-timeline">
+              <div class="pipe-step done" id="step-validate">1. Appendix A Validation</div>
+              <div class="pipe-step done" id="step-tailor">2. Tailoring &amp; Framing</div>
+              <div class="pipe-step done" id="step-rules">3. Rules Verification</div>
+              <div class="pipe-step done" id="step-publish">4. Connector Delivery</div>
+              <div class="pipe-step done" id="step-manifest">5. Output Manifest</div>
+            </div>
+
+            <div class="result-box" id="monitor-result-box">
+              <h3>Execution Result &amp; Manifest</h3>
+              <pre id="monitor-json-output">{}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: RECOMMENDER -->
+    <section id="tab-recommender" class="tab-panel">
+      <div class="recommender-layout">
+        <div class="recommender-input-card">
+          <h2>Content Fit Recommender</h2>
+          <p class="subtitle">Multi-factor destination ranking evaluated across audience, rules, and proven platform scale.</p>
+          
+          <form id="recommender-form">
+            <div class="form-group">
+              <label for="rec-title">Content Title</label>
+              <input type="text" id="rec-title" class="form-control" value="Building Production AI Agents with Retrieval Augmented Generation (RAG)">
+            </div>
+
+            <div class="form-group">
+              <label for="rec-body">Body / Summary</label>
+              <textarea id="rec-body" rows="4" class="form-control">In this technical deep-dive, we explore how to architect production-grade LLM agents using vector embeddings, hybrid search, and semantic routing.</textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="rec-tags">Tags</label>
+              <input type="text" id="rec-tags" class="form-control" value="ai, llm, rag, machine-learning, python">
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="primary-btn" id="btn-run-recommend">
+                <span>🎯 Rank Top-10 Destinations</span>
+              </button>
+              <button type="button" class="secondary-btn" id="btn-eval-benchmark">
+                <span>📊 Run Benchmark (Precision@10)</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="recommender-results-card">
+          <div class="card-header-flex">
+            <h2>Ranked Recommendations</h2>
+            <div class="benchmark-score-badge" id="benchmark-score-badge" style="display: none;">
+              Precision@10: <strong id="benchmark-val">88.0%</strong>
+            </div>
+          </div>
+          <div id="recommender-results-list" class="ranked-list">
+            <div class="empty-placeholder">Click "Rank Top-10 Destinations" to see multi-factor scoring recommendations.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: CERTIFICATION PACK -->
+    <section id="tab-certification" class="tab-panel">
+      <div class="section-header-row">
+        <div>
+          <h2>Certification &amp; Anti-Spam Evidence Pack</h2>
+          <p class="subtitle">Must-have 2 &amp; 5: Test posts go only to sandboxes, verify live status, and are deleted within 10 minutes.</p>
+        </div>
+        <div>
+          <button class="primary-btn" id="btn-run-full-certification">
+            <span>🛡️ Run Full Certification Cycle</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="cert-grid" id="cert-results-container">
+        <!-- Populated via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 6: HARD CASES -->
+    <section id="tab-hardcases" class="tab-panel">
+      <div class="section-header-row">
+        <div>
+          <h2>Hidden Test Scenarios &amp; Failure Resilience</h2>
+          <p class="subtitle">Live verification of edge cases: 429 backoff, expired tokens, frequency cap violations, and schema drift.</p>
+        </div>
+      </div>
+
+      <div class="hardcases-grid">
+        <div class="hardcase-card">
+          <div class="case-badge">SCENARIO 1</div>
+          <h3>429 Rate Limit with Reset Header</h3>
+          <p>Simulates downstream platform 429 response. Validates that service maps to <code>PLATFORM_RATE_LIMIT</code> and backs off using <code>Retry-After</code>.</p>
+          <button class="test-trigger-btn" onclick="triggerHardCase('429')">Test 429 Rate Limit</button>
+        </div>
+
+        <div class="hardcase-card">
+          <div class="case-badge">SCENARIO 2</div>
+          <h3>Expired / Revoked Auth Token</h3>
+          <p>Simulates expired OAuth or API token. Validates non-retryable <code>CONNECTION_AUTH_EXPIRED</code> mapping.</p>
+          <button class="test-trigger-btn" onclick="triggerHardCase('expired_token')">Test Expired Token</button>
+        </div>
+
+        <div class="hardcase-card">
+          <div class="case-badge">SCENARIO 3</div>
+          <h3>Frequency Cap Violation</h3>
+          <p>Sends a second post inside cooldown window. Engine catches rule, blocks post, and returns computed reschedule window.</p>
+          <button class="test-trigger-btn" onclick="triggerHardCase('freq_cap')">Test Frequency Cap</button>
+        </div>
+
+        <div class="hardcase-card">
+          <div class="case-badge">SCENARIO 4</div>
+          <h3>Promotional Post to No-Promo Community</h3>
+          <p>Attempts commercial pitch on community with <code>self_promo_allowed=false</code>. Verifies <code>SELF_PROMOTION_BANNED</code> block.</p>
+          <button class="test-trigger-btn" onclick="triggerHardCase('promo_violation')">Test Anti-Promo Rule</button>
+        </div>
+
+        <div class="hardcase-card">
+          <div class="case-badge">SCENARIO 5</div>
+          <h3>API Schema Drift (Renamed Field)</h3>
+          <p>Simulates upstream API schema change. Engine detects anomaly, fails certification, and automatically demotes destination to L0.</p>
+          <button class="test-trigger-btn" onclick="triggerHardCase('renamed_field')">Test Schema Drift Demotion</button>
+        </div>
+
+        <div class="hardcase-card">
+          <div class="case-badge">SCENARIO 6</div>
+          <h3>Safe Retries (Idempotency)</h3>
+          <p>Forces network timeout and retries with same <code>Idempotency-Key</code>. Guarantees 0 duplicate posts.</p>
+          <button class="test-trigger-btn" onclick="triggerHardCase('idempotency')">Test Idempotent Retry</button>
+        </div>
+      </div>
+
+      <div class="hardcase-response-box" id="hardcase-response-box" style="display: none;">
+        <h3>Edge Case Test Response</h3>
+        <pre id="hardcase-json-output"></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Script -->
+  <script src="/static/app.js"></script>
+</body>
+</html>
