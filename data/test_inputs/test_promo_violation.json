@@ -1,0 +1,20 @@
+{
+  "rendition": {
+    "title": "Buy Our Super Fast SaaS Tool - 50% Off Limited Time Discount!",
+    "body": "Check out our product at https://example.com/pricing and sign up today for an exclusive discount coupon on our starter plan!",
+    "tags": ["saas", "deals"],
+    "is_promotional": true,
+    "ai_generated": false
+  },
+  "destination": {
+    "name": "No Promo Community",
+    "url": "https://discuss.huggingface.co",
+    "platform_key": "discourse",
+    "connector_key": "discourse",
+    "frequency_cap": "1/24h",
+    "self_promo_allowed": false,
+    "link_policy": "allowed",
+    "disclosure_required": false,
+    "automation_allowed": true
+  }
+}

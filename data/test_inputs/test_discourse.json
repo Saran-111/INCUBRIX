@@ -1,0 +1,20 @@
+{
+  "rendition": {
+    "title": "Discussion: Best practices for managing distributed async queues",
+    "body": "What are your preferred strategies for managing durable job queues in high-traffic applications? We have seen interesting trade-offs between Redis Streams and transactional SQLite.",
+    "tags": ["saas", "architecture", "python"],
+    "is_promotional": false,
+    "ai_generated": false
+  },
+  "destination": {
+    "name": "Discourse Tech Community",
+    "url": "https://community.openai.com",
+    "platform_key": "discourse",
+    "connector_key": "discourse",
+    "frequency_cap": "1/24h",
+    "self_promo_allowed": true,
+    "link_policy": "allowed",
+    "disclosure_required": false,
+    "automation_allowed": true
+  }
+}

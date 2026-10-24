@@ -1,0 +1,22 @@
+{
+  "rendition": {
+    "title": "Lessons learned scaling to 10k users",
+    "body": "Here are 5 core observations from our user onboarding funnel redesign.",
+    "media_urls": ["https://example.com/chart.png"],
+    "tags": ["founders", "saas"],
+    "is_promotional": false,
+    "ai_generated": true
+  },
+  "destination": {
+    "name": "Reddit r/SaaS",
+    "url": "https://reddit.com/r/SaaS",
+    "platform_key": "assisted",
+    "connector_key": "assisted",
+    "rules_url": "https://reddit.com/r/SaaS/wiki/rules",
+    "frequency_cap": "1/7d",
+    "self_promo_allowed": false,
+    "link_policy": "restricted",
+    "disclosure_required": true,
+    "automation_allowed": false
+  }
+}

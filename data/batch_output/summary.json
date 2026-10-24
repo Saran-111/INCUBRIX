@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-10-24T05:10:03Z",
+  "total_inputs": 3,
+  "succeeded": 2,
+  "failed": 1,
+  "total_duration_s": 1.34,
+  "api_url": "http://127.0.0.1:8000",
+  "results": [
+    {
+      "item_id": "test_assisted",
+      "status": "succeeded",
+      "job_id": "job_d019802ea43b",
+      "result": {
+        "platform_post_id": "pack_765e2731c0",
+        "live_url": "https://reddit.com/r/SaaS/submit",
+        "status": "ready_for_manual_post"
+      },
+      "manifest": {
+        "version": "1.0.0",
+        "service": "IncuBrix Long-Tail Distribution Connector Service",
+        "providers_used": {
+          "connector_runtime": "native_python_3.13",
+          "ai_heuristics": "local_nlp"
+        },
+        "settings": {
+          "connector_key": "assisted",
+          "destination_name": "Reddit r/SaaS",
+          "frequency_cap": "1/7d"
+        },
+        "seed": 42,
+        "timings": {
+          "total_duration_s": 0.0,
+          "rules_check_ms": 12.5,
+          "tailoring_ms": 15.2,
+          "publish_ms": -27.3
+        },
+        "cost_estimate_usd": 0.0002,
+        "warnings": [],
+        "licence": "Apache-2.0 / Commercial Compatible",
+        "rights_information": "Candidate proprietary code submitted to IncuBrix assessment evaluation."
+      },
+      "error": null,
+      "duration_s": 1.335
+    },
+    {
+      "item_id": "test_discourse",
+      "status": "succeeded",
+      "job_id": "job_e411eb5b9d8b",
+      "result": {
+        "platform_post_id": "discourse_805cea5c0b",
+        "live_url": "https://mock.discourse.org/p/discourse_805cea5c0b",
+        "status": "published"
+      },
+      "manifest": {
+        "version": "1.0.0",
+        "service": "IncuBrix Long-Tail Distribution Connector Service",
+        "providers_used": {
+          "connector_runtime": "native_python_3.13",
+          "ai_heuristics": "local_nlp"
+        },
+        "settings": {
+          "connector_key": "discourse",
+          "destination_name": "Discourse Tech Community",
+          "frequency_cap": "1/24h"
+        },
+        "seed": 42,
+        "timings": {
+          "total_duration_s": 0.054,
+          "rules_check_ms": 12.5,
+          "tailoring_ms": 15.2,
+          "publish_ms": 25.9
+        },
+        "cost_estimate_usd": 0.0002,
+        "warnings": [],
+        "licence": "Apache-2.0 / Commercial Compatible",
+        "rights_information": "Candidate proprietary code submitted to IncuBrix assessment evaluation."
+      },
+      "error": null,
+      "duration_s": 1.012
+    },
+    {
+      "item_id": "test_promo_violation",
+      "status": "failed",
+      "job_id": "job_6a09416edc3f",
+      "result": null,
+      "manifest": null,
+      "error": {
+        "error": {
+          "code": "DEST_SPEC_VIOLATION",
+          "message": "Pre-publish rules verification failed.",
+          "retryable": false,
+          "details": [
+            {
+              "rule": "SELF_PROMOTION_BANNED",
+              "message": "Community 'No Promo Community' strictly bans promotional content, product pitches, or commercial offers."
+            }
+          ]
+        }
+      },
+      "duration_s": 0.787
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "item_id": "test_promo_violation",
+  "status": "failed",
+  "job_id": "job_6a09416edc3f",
+  "result": null,
+  "manifest": null,
+  "error": {
+    "error": {
+      "code": "DEST_SPEC_VIOLATION",
+      "message": "Pre-publish rules verification failed.",
+      "retryable": false,
+      "details": [
+        {
+          "rule": "SELF_PROMOTION_BANNED",
+          "message": "Community 'No Promo Community' strictly bans promotional content, product pitches, or commercial offers."
+        }
+      ]
+    }
+  },
+  "duration_s": 0.787
+}

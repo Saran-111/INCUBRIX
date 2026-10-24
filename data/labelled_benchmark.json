@@ -1,0 +1,109 @@
+[
+  {
+    "title": "Building Production AI Agents with Retrieval Augmented Generation (RAG)",
+    "body": "In this technical deep-dive, we explore how to architect production-grade LLM agents using vector embeddings, hybrid search, and semantic routing. We examine latency benchmarks, hallucination guards, and evaluation metrics.",
+    "tags": ["ai", "llm", "rag", "machine-learning", "python"],
+    "category": "ai",
+    "is_promotional": false,
+    "ai_generated": false,
+    "relevant_destinations": [
+      "https://community.openai.com",
+      "https://discuss.huggingface.co",
+      "https://forums.fast.ai",
+      "https://community.neo4j.com",
+      "https://forum.opensearch.org",
+      "https://dev.to/t/ai",
+      "https://hashnode.com/n/artificial-intelligence",
+      "https://programming.dev/c/artificialintelligence",
+      "https://aibuilders.slack.com",
+      "https://aicreatordispatch.ghost.io",
+      "https://reddit.com/r/artificial"
+    ]
+  },
+  {
+    "title": "Bootstrapping a Micro-SaaS to $20k MRR: Lessons from 18 Months of Building",
+    "body": "Here is the exact breakdown of how our 2-person team bootstrapped a developer analytics SaaS from zero to $20,000 monthly recurring revenue without venture capital. We cover pricing experiments, churn reduction, customer support, and cold email conversion rates.",
+    "tags": ["saas", "founders", "bootstrapping", "growth", "startups"],
+    "category": "saas",
+    "is_promotional": false,
+    "ai_generated": false,
+    "relevant_destinations": [
+      "https://lemmy.world/c/startups",
+      "https://dev.to/t/startup",
+      "https://dev.to/t/saas",
+      "https://hashnode.com/n/indie-hackers",
+      "https://hashnode.com/n/saas",
+      "https://saasfounderblueprint.ghost.io",
+      "https://indieworldwide.slack.com",
+      "https://feed.growthhackerdaily.com/webhook",
+      "https://reddit.com/r/saas",
+      "https://reddit.com/r/entrepreneur",
+      "https://www.indiehackers.com",
+      "https://community.render.com"
+    ]
+  },
+  {
+    "title": "Optimizing Video Encoding Pipelines for High-Throughput Short-Form Content",
+    "body": "A comprehensive benchmark of FFmpeg, NVENC, and AV1 video codecs for real-time mobile playback. Learn how we decreased transcoding latency by 48% while maintaining crisp visual fidelity for 4K video exports.",
+    "tags": ["video", "youtube", "multimedia", "creators", "editing"],
+    "category": "video",
+    "is_promotional": false,
+    "ai_generated": false,
+    "relevant_destinations": [
+      "https://dev.to/t/video",
+      "https://lemmy.world/c/videocreators",
+      "https://videogrowth.ghost.io",
+      "https://reddit.com/r/videography",
+      "https://forum.blackmagicdesign.com",
+      "https://blenderartists.org",
+      "https://community.vimeo.com",
+      "https://forum.videolan.org",
+      "https://ffmpeg.org/community",
+      "https://forums.docker.com",
+      "https://syndicate.techpub.io/incoming"
+    ]
+  },
+  {
+    "title": "The Engineering Behind Developer Marketing: How to Build Tools That Go Viral",
+    "body": "Why typical ad campaigns fail with software engineers, and why utility-based marketing (interactive playgrounds, open-source CLIs, and technical cheatsheets) generates sustainable inbound pipeline for developer-first products.",
+    "tags": ["marketing", "growth", "devrel", "seo", "content"],
+    "category": "marketing",
+    "is_promotional": false,
+    "ai_generated": false,
+    "relevant_destinations": [
+      "https://feddit.org/c/marketing",
+      "https://dev.to/t/marketing",
+      "https://hashnode.com/n/marketing",
+      "https://marketingops.slack.com",
+      "https://devrelcollective.slack.com",
+      "https://feed.growthhackerdaily.com/webhook",
+      "https://reddit.com/r/marketing",
+      "https://community.growthhackers.com",
+      "https://demandcurve.slack.com",
+      "https://discourse.webflow.com",
+      "https://www.producthunt.com/discussions",
+      "https://meta.discourse.org"
+    ]
+  },
+  {
+    "title": "Creator Economics: Transforming Newsletter Readers into Paid Community Members",
+    "body": "How independent creators can build resilient recurring revenue models with premium content tiers, curated community forums, and bespoke member newsletters. Real numbers and retention analysis from 3 creators.",
+    "tags": ["creators", "newsletters", "podcasts", "monetization", "founders"],
+    "category": "creators",
+    "is_promotional": false,
+    "ai_generated": false,
+    "relevant_destinations": [
+      "https://forum.ghost.org",
+      "https://discourse.webflow.com",
+      "https://community.kit.com",
+      "https://on.substack.com",
+      "https://creators.patreon.com",
+      "https://podcastersguild.org",
+      "https://medium.com/creators",
+      "https://community.teachable.com",
+      "https://gumroad.com/creators",
+      "https://forum.figma.com",
+      "https://hashnode.com/n/indie-hackers"
+    ]
+  }
+]
