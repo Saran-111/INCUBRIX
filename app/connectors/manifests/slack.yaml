@@ -1,0 +1,25 @@
+key: slack
+name: Slack Community App
+version: 1.0.0
+tier: native
+auth: bot_token
+surfaces:
+  - key: channel_message
+    content_types: [text, image, markdown]
+    spec:
+      title_min_chars: 0
+      title_max_chars: 200
+      body_min_chars: 1
+      body_max_chars: 40000
+      links_allowed: true
+rate_limits:
+  per_connection:
+    requests: 60
+    per_seconds: 60
+capabilities: [validate, publish, status, delete, metrics]
+error_map:
+  "429": PLATFORM_RATE_LIMIT
+  "401": CONNECTION_AUTH_EXPIRED
+  "403": CONNECTION_AUTH_EXPIRED
+  "500": PLATFORM_UNAVAILABLE
+instance_param: channel_id

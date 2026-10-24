@@ -1,0 +1,22 @@
+key: assisted
+name: Assisted Ready-To-Post Pack
+version: 1.0.0
+tier: assisted
+auth: none
+surfaces:
+  - key: manual_pack
+    content_types: [text, image, checklist]
+    spec:
+      title_min_chars: 0
+      title_max_chars: 500
+      body_min_chars: 1
+      body_max_chars: 50000
+      links_allowed: true
+rate_limits:
+  per_connection:
+    requests: 300
+    per_seconds: 60
+capabilities: [validate, publish, status, delete, build_assist_pack]
+error_map:
+  "400": PLATFORM_CONTENT_REJECTED
+instance_param: none

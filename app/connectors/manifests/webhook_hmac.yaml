@@ -1,0 +1,25 @@
+key: webhook_hmac
+name: Partner Signed HMAC Webhook
+version: 1.0.0
+tier: bridge
+auth: hmac
+surfaces:
+  - key: webhook
+    content_types: [text, json, payload]
+    spec:
+      title_min_chars: 0
+      title_max_chars: 500
+      body_min_chars: 1
+      body_max_chars: 1000000
+      links_allowed: true
+rate_limits:
+  per_connection:
+    requests: 120
+    per_seconds: 60
+capabilities: [validate, publish, status, delete]
+error_map:
+  "429": PLATFORM_RATE_LIMIT
+  "401": CONNECTION_AUTH_EXPIRED
+  "403": CONNECTION_AUTH_EXPIRED
+  "500": PLATFORM_UNAVAILABLE
+instance_param: webhook_url
