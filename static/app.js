@@ -129,8 +129,63 @@ function populateDestinationSelect(destinations) {
   `).join("");
 }
 
+function setupFileUpload() {
+  const uploadBtn = document.getElementById("btn-upload-file");
+  const fileInput = document.getElementById("pub-media-file");
+  const urlInput = document.getElementById("pub-media-url");
+  const statusDiv = document.getElementById("upload-status");
+  if (!uploadBtn || !fileInput) return;
+
+  uploadBtn.addEventListener("click", async () => {
+    if (!fileInput.files || fileInput.files.length === 0) {
+      alert("Please select a photo or video file from your computer first!");
+      return;
+    }
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = "⏳ Uploading...";
+    statusDiv.style.display = "block";
+    statusDiv.style.color = "var(--text-secondary)";
+    statusDiv.textContent = `Uploading ${file.name} to cloud storage...`;
+
+    try {
+      const resp = await fetch("/api/v1/storage/upload", {
+        method: "POST",
+        body: formData
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        urlInput.value = data.download_url;
+        statusDiv.style.color = "var(--accent-green)";
+        statusDiv.textContent = `✅ Successfully uploaded "${data.filename}" to storage!`;
+      } else {
+        const err = await resp.json();
+        statusDiv.style.color = "var(--accent-rose)";
+        statusDiv.textContent = `❌ Upload failed: ${err.message || 'Error'}`;
+      }
+    } catch (e) {
+      statusDiv.style.color = "var(--accent-rose)";
+      statusDiv.textContent = `❌ Upload failed: ${e.message}`;
+    } finally {
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = "📤 Upload File";
+    }
+  });
+
+  // Auto-upload when user picks a file
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files && fileInput.files.length > 0) {
+      uploadBtn.click();
+    }
+  });
+}
+
 // Job Publisher
 function setupPublishForm() {
+  setupFileUpload();
   const form = document.getElementById("publish-job-form");
   if (!form) return;
 
