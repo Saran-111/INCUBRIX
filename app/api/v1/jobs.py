@@ -133,13 +133,25 @@ async def create_publish_job(
     Integration Standard 3 & 4:
     Async background jobs returning 202 with job_id, and safe retries via Idempotency-Key.
     """
-    idem_key = idempotency_key or f"job_{hash(request.rendition.body + request.destination.url)}"
+    import hashlib
+    req_content = f"{request.destination.connector_key}:{request.destination.url}:{request.rendition.title or ''}:{request.rendition.body}:{','.join(request.rendition.tags)}"
+    req_hash = hashlib.sha256(req_content.encode("utf-8")).hexdigest()
+    
+    idem_key = idempotency_key or f"job_{req_hash[:16]}"
 
     # Idempotency check: sending the same request twice with the same key returns the same job
-    record, is_new = await idempotency_store.get_or_create(idem_key, f"job:{request.destination.url}")
-    if not is_new and record.response_data:
-        response.status_code = status.HTTP_200_OK if record.status == "COMPLETED" else status.HTTP_202_ACCEPTED
-        return record.response_data
+    record, is_new = await idempotency_store.get_or_create(idem_key, req_hash)
+    if not is_new:
+        if record.request_hash and record.request_hash != req_hash:
+            raise IncubrixAPIException(
+                code=ErrorCodes.IDEMPOTENCY_CONFLICT,
+                message="Idempotency-Key already used with a different request payload.",
+                status_code=409,
+                retryable=False
+            )
+        if record.response_data:
+            response.status_code = status.HTTP_200_OK if record.status == "COMPLETED" else status.HTTP_202_ACCEPTED
+            return record.response_data
 
     conn = request.connection or Connection()
     job = await job_manager.create_job(idempotency_key=idem_key, callback_url=request.callback_url)

@@ -61,3 +61,18 @@ async def test_idempotency_after_forced_timeout():
     assert is_new_retry is False
     assert retried_record.status == "COMPLETED"
     assert retried_record.response_data["platform_post_id"] == "discourse_post_timeout_recovered"
+
+@pytest.mark.asyncio
+async def test_idempotency_key_reuse_with_different_payload_detected():
+    """
+    Validates that reusing the same key with different content hash returns mismatch.
+    """
+    key = "conflict_check_key_123"
+    rec1, is_new = await idempotency_store.get_or_create(key, "hash_payload_A")
+    assert is_new is True
+    assert rec1.request_hash == "hash_payload_A"
+
+    # Reuse with different hash
+    rec2, is_new_2 = await idempotency_store.get_or_create(key, "hash_payload_B")
+    assert is_new_2 is False
+    assert rec2.request_hash != "hash_payload_B"  # Mismatch detected!

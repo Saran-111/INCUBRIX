@@ -62,13 +62,33 @@ class DevToConnector(BaseConnector):
         if settings.SIMULATION_MODE or not connection.api_key:
             res = await simulate_network_call(self.key, "get_status", {"platform_post_id": platform_post_id})
             return StatusResult(**res)
-        return StatusResult(status="live", live_url=f"https://dev.to/article/{platform_post_id}")
+        headers = self._get_headers(connection)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"https://dev.to/api/articles/{platform_post_id}", headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                return StatusResult(status="live", live_url=data.get("url", f"https://dev.to/article/{platform_post_id}"))
+            elif resp.status_code == 404:
+                return StatusResult(status="deleted", live_url="")
+            raise IncubrixAPIException(code=ErrorCodes.PLATFORM_UNAVAILABLE, message=resp.text, retryable=True)
 
     async def delete(self, platform_post_id: str, connection: Connection) -> DeleteResult:
         if settings.SIMULATION_MODE or not connection.api_key:
             res = await simulate_network_call(self.key, "delete", {"platform_post_id": platform_post_id})
             return DeleteResult(**res)
-        return DeleteResult(deleted=True)
+        headers = self._get_headers(connection)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Dev.to unpublishing via update
+            resp = await client.put(
+                f"https://dev.to/api/articles/{platform_post_id}",
+                json={"article": {"published": False}},
+                headers=headers
+            )
+            if resp.status_code in (200, 204):
+                return DeleteResult(deleted=True)
+            elif resp.status_code in (401, 403):
+                raise IncubrixAPIException(code=ErrorCodes.CONNECTION_AUTH_EXPIRED, message="Dev.to auth expired", retryable=False)
+            return DeleteResult(deleted=False)
 
     async def fetch_metrics(self, platform_post_id: str, connection: Connection, since: Optional[str] = None) -> MetricsResult:
         if settings.SIMULATION_MODE or not connection.api_key:

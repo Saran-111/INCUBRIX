@@ -48,11 +48,11 @@ app.openapi_version = "3.1.0"
 app.add_exception_handler(IncubrixAPIException, incubrix_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
-# CORS Middleware
+# CORS Middleware (Hardened for browser standards)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

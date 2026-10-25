@@ -66,12 +66,24 @@ async def invoke_connector_method(
             connector_key=connector_key
         )
         
-        idem_key = idempotency_key_header or payload.idempotency_key or f"publish_{connector_key}_{hash(payload.rendition.body)}"
+        import hashlib
+        req_content = f"{connector_key}:{dest.url}:{payload.rendition.title or ''}:{payload.rendition.body}:{','.join(payload.rendition.tags)}"
+        req_hash = hashlib.sha256(req_content.encode("utf-8")).hexdigest()
+        
+        idem_key = idempotency_key_header or payload.idempotency_key or f"publish_{connector_key}_{req_hash[:16]}"
         
         # Check idempotency
-        record, is_new = await idempotency_store.get_or_create(idem_key, f"{connector_key}:{dest.url}")
-        if not is_new and record.status == "COMPLETED" and record.response_data:
-            return record.response_data
+        record, is_new = await idempotency_store.get_or_create(idem_key, req_hash)
+        if not is_new:
+            if record.request_hash and record.request_hash != req_hash:
+                raise IncubrixAPIException(
+                    code=ErrorCodes.IDEMPOTENCY_CONFLICT,
+                    message="Idempotency-Key already used with a different request payload.",
+                    status_code=409,
+                    retryable=False
+                )
+            if record.status == "COMPLETED" and record.response_data:
+                return record.response_data
 
         try:
             res = await connector.publish(payload.rendition, dest, conn, idem_key)

@@ -63,13 +63,33 @@ class GhostConnector(BaseConnector):
         if settings.SIMULATION_MODE or not connection.base_url:
             res = await simulate_network_call(self.key, "get_status", {"platform_post_id": platform_post_id})
             return StatusResult(**res)
-        return StatusResult(status="live", live_url=f"{connection.base_url}/p/{platform_post_id}")
+        token = self._create_token(connection.api_key or "demo:key")
+        headers = {"Authorization": f"Ghost {token}"}
+        url = f"{connection.base_url.rstrip('/')}/ghost/api/admin/posts/{platform_post_id}/"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url, headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                post = data.get("posts", [{}])[0]
+                return StatusResult(status="live", live_url=post.get("url", f"{connection.base_url}/p/{platform_post_id}"))
+            elif resp.status_code == 404:
+                return StatusResult(status="deleted", live_url="")
+            raise IncubrixAPIException(code=ErrorCodes.PLATFORM_UNAVAILABLE, message=resp.text, retryable=True)
 
     async def delete(self, platform_post_id: str, connection: Connection) -> DeleteResult:
         if settings.SIMULATION_MODE or not connection.base_url:
             res = await simulate_network_call(self.key, "delete", {"platform_post_id": platform_post_id})
             return DeleteResult(**res)
-        return DeleteResult(deleted=True)
+        token = self._create_token(connection.api_key or "demo:key")
+        headers = {"Authorization": f"Ghost {token}"}
+        url = f"{connection.base_url.rstrip('/')}/ghost/api/admin/posts/{platform_post_id}/"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.delete(url, headers=headers)
+            if resp.status_code in (200, 204):
+                return DeleteResult(deleted=True)
+            elif resp.status_code in (401, 403):
+                raise IncubrixAPIException(code=ErrorCodes.CONNECTION_AUTH_EXPIRED, message="Ghost token expired", retryable=False)
+            return DeleteResult(deleted=False)
 
     async def fetch_metrics(self, platform_post_id: str, connection: Connection, since: Optional[str] = None) -> MetricsResult:
         if settings.SIMULATION_MODE or not connection.base_url:

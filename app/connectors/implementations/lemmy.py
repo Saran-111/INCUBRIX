@@ -66,13 +66,32 @@ class LemmyConnector(BaseConnector):
         if settings.SIMULATION_MODE or not connection.base_url:
             res = await simulate_network_call(self.key, "get_status", {"platform_post_id": platform_post_id})
             return StatusResult(**res)
-        return StatusResult(status="live", live_url=f"{connection.base_url}/post/{platform_post_id}")
+        url = f"{connection.base_url.rstrip('/')}/api/v3/post"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url, params={"id": platform_post_id})
+            if resp.status_code == 200:
+                return StatusResult(status="live", live_url=f"{connection.base_url.rstrip('/')}/post/{platform_post_id}")
+            elif resp.status_code == 404:
+                return StatusResult(status="deleted", live_url="")
+            raise IncubrixAPIException(code=ErrorCodes.PLATFORM_UNAVAILABLE, message=resp.text, retryable=True)
 
     async def delete(self, platform_post_id: str, connection: Connection) -> DeleteResult:
         if settings.SIMULATION_MODE or not connection.base_url:
             res = await simulate_network_call(self.key, "delete", {"platform_post_id": platform_post_id})
             return DeleteResult(**res)
-        return DeleteResult(deleted=True)
+        url = f"{connection.base_url.rstrip('/')}/api/v3/post/delete"
+        payload = {
+            "post_id": int(platform_post_id) if platform_post_id.isdigit() else 1,
+            "deleted": True,
+            "auth": connection.token or connection.api_key or "auth_token"
+        }
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(url, json=payload)
+            if resp.status_code == 200:
+                return DeleteResult(deleted=True)
+            elif resp.status_code in (401, 403):
+                raise IncubrixAPIException(code=ErrorCodes.CONNECTION_AUTH_EXPIRED, message="Lemmy auth token expired", retryable=False)
+            return DeleteResult(deleted=False)
 
     async def fetch_metrics(self, platform_post_id: str, connection: Connection, since: Optional[str] = None) -> MetricsResult:
         if settings.SIMULATION_MODE or not connection.base_url:
