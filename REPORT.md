@@ -62,7 +62,7 @@ All empirical measurements below were collected on an 8-Core Intel i7 laptop run
 | **Local HTTP Integration Cleanup (Webhook HMAC)**| Local HTTP Integration | &lt; 10 minutes | **1.458 seconds** | `data/evidence/cert_webhook_hmac_*.json` |
 | **Duplicate Posts Under Retry** | Measured | Must be **0** | **0 duplicates created** | `tests/test_idempotency.py` |
 | **Rule Safety (Frequency / Promo)** | Measured | 0 false negatives | **100% caught** (0 missed) | `tests/test_rules.py` |
-| **Test Suite Pass Rate** | Measured | 100% Pass | **42 / 42 Passed (11.36s)** | `pytest.ini` / `data/evidence/` |
+| **Test Suite Pass Rate** | Measured | 100% Pass | **42 / 42 Passed (~5.00s warm / 11.36s cold)** | `pytest.ini` / `data/evidence/` |
 
 ### Evidence Labeling & Certification Taxonomy:
 1. **Simulation Mode (`environment: "simulation"`)**: Validates internal state transitions, serialization schemas, anti-spam rules, and retry idempotency in-memory with zero external dependencies.
@@ -70,6 +70,7 @@ All empirical measurements below were collected on an 8-Core Intel i7 laptop run
 3. **Live Platform Certification (`environment: "live_platform"`)**: Reserved for live network runs against actual third-party hosted production platforms (requiring live credentials and community permissions).
 
 ### Reproducibility of Benchmark Evidence:
+- **Execution Latency**: The full 42-test suite completes in **~5.00 seconds** on warm runs (and ~11.36s on initial cold runs with thread socket spin-ups).
 - **Simulation Suite (39 Tests)**: Run `pytest tests/ -k "not test_live_certification and not test_local_instances"`. Validates contract formats, rules engine constraints, and deterministic race-condition locks without external dependencies.
 - **Local HTTP Integration Suite (3 Tests)**: Run `pytest tests/test_live_certification.py tests/test_local_instances.py`. Spins up real TCP sockets on localhost with `SIMULATION_MODE=false`, executing true HTTP POST/GET/DELETE cycles and generating verifiable evidence files with `"environment": "local_http_integration"`.
 
