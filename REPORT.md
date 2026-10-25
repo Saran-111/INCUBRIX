@@ -66,13 +66,15 @@ All empirical measurements below were collected on an 8-Core Intel i7 laptop run
 
 ### Evidence Labeling & Certification Taxonomy:
 1. **Simulation Mode (`environment: "simulation"`)**: Validates internal state transitions, serialization schemas, anti-spam rules, and retry idempotency in-memory with zero external dependencies.
-2. **Local HTTP Integration (`environment: "local_http_integration"`)**: Validates socket communication over real HTTP POST/GET/DELETE against local test containers and stateful receiver sockets with simulation disabled, verifying real network protocol handling and post-deletion 404 contracts.
-3. **Live Platform Certification (`environment: "live_platform"`)**: Reserved for live network runs against actual third-party hosted production platforms (requiring live credentials and community permissions).
+2. **Local Test-Server HTTP Integration (`environment: "local_http_integration"`)**: Validates socket communication over real HTTP POST/GET/DELETE against in-process ephemeral test servers and stateful receiver sockets with simulation disabled, verifying real network protocol handling, HMAC cryptographic verification, and post-deletion 404 contracts.
+3. **Docker Compose Inter-Container Integration**: Validates direct inter-container HTTP communication between the `service` and the separate `lemmy` container over the Docker network (`http://lemmy:8536`).
+4. **Live Platform Certification (`environment: "live_platform"`)**: Reserved for live network runs against actual third-party hosted production platforms (requiring live credentials and community permissions).
 
 ### Reproducibility of Benchmark Evidence:
-- **Execution Latency**: The full 42-test suite completes in **~5.00 seconds** on warm runs (and ~11.36s on initial cold runs with thread socket spin-ups).
-- **Simulation Suite (39 Tests)**: Run `pytest tests/ -k "not test_live_certification and not test_local_instances"`. Validates contract formats, rules engine constraints, and deterministic race-condition locks without external dependencies.
-- **Local HTTP Integration Suite (3 Tests)**: Run `pytest tests/test_live_certification.py tests/test_local_instances.py`. Spins up real TCP sockets on localhost with `SIMULATION_MODE=false`, executing true HTTP POST/GET/DELETE cycles and generating verifiable evidence files with `"environment": "local_http_integration"`.
+- **Execution Latency**: The 42 standalone tests complete in **~5.00 seconds** on warm runs (and ~11.36s on initial cold runs).
+- **Simulation Suite (39 Tests)**: Run `pytest tests/ -k "not test_live_certification and not test_local_instances and not test_compose_integration"`. Validates contract formats, rules engine constraints, and deterministic race-condition locks without external dependencies.
+- **Local Test-Server HTTP Integration Suite (3 Tests)**: Run `pytest tests/test_live_certification.py tests/test_local_instances.py`. Spins up real TCP sockets on localhost with `SIMULATION_MODE=false`, executing true HTTP POST/GET/DELETE cycles and generating verifiable evidence files with `"environment": "local_http_integration"`.
+- **Docker Compose Container Integration (1 Test)**: Run `docker compose exec -e SIMULATION_MODE=false service pytest -v tests/test_compose_integration.py`. Executes full publish/status/delete lifecycle directly against the running `lemmy` container at `http://lemmy:8536`.
 
 ### Benchmark Breakdown: Top-10 Recommender Precision
 Evaluated against the gold-standard annotated benchmark (`data/labelled_benchmark.json`) covering 5 distinct creator archetypes:

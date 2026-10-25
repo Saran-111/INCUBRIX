@@ -93,11 +93,11 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 # 1. Start all containers (Service + MinIO + Ghost + Lemmy Stateful Mock)
 docker compose up -d
 
-# 2. Run simulation test suite inside container (Safe Default)
+# 2. Run standalone test suite inside container (Safe Default: 42 passed)
 docker compose exec service pytest -v
 
-# 3. Run real-HTTP local integration tests (Against live container TCP sockets)
-docker compose exec -e SIMULATION_MODE=false service pytest -v tests/test_local_instances.py tests/test_live_certification.py
+# 3. Run Compose inter-container integration test (Directly testing http://lemmy:8536 over Docker network)
+docker compose exec -e SIMULATION_MODE=false service pytest -v tests/test_compose_integration.py
 
 # 4. Access web dashboard & API docs
 # Dashboard: http://localhost:8000/
@@ -109,7 +109,10 @@ docker compose exec -e SIMULATION_MODE=false service pytest -v tests/test_local_
 ## 🧪 Testing & Verification
 
 ### Running the Full Test Suite
-The service includes 42 comprehensive tests covering all Appendix A contract methods, posting rules, idempotency with race condition locks, metadata hashing, edge cases, 1,000-row catalogue import benchmark, recommender precision, cryptographic HMAC verification, and both simulation & local HTTP integration certification suites:
+The service includes 43 total tests with transparent architectural tiering:
+- **Simulation Suite (39 Tests)**: In-memory validation of Appendix A contract methods, posting rules, idempotency under timeout, edge cases, 1,000-row catalogue import benchmark, and recommender precision.
+- **Local Test-Server HTTP Integration (3 Tests)**: Real TCP socket HTTP tests ([test_local_instances.py](file:///tests/test_local_instances.py), [test_live_certification.py](file:///tests/test_live_certification.py)) running against in-process mock servers with cryptographic HMAC verification.
+- **Docker Compose Container Integration (1 Test)**: Inter-container network test ([test_compose_integration.py](file:///tests/test_compose_integration.py)) verifying direct HTTP communication between the `service` and separate `lemmy` container at `http://lemmy:8536`.
 
 ```bash
 pytest -v
