@@ -151,11 +151,18 @@ class CertificationHarness:
         evidence_filename = f"cert_{dest_record.connector_key}_{int(start_time)}.json"
         evidence_path = self.evidence_dir / evidence_filename
 
+        if settings.SIMULATION_MODE:
+            env_type = "simulation"
+        elif any(local_k in (dest_record.url or "").lower() for local_k in ["localhost", "127.0.0.1", "0.0.0.0", "mock.", ".test", "partner-generic", "partner-compliant", ":8536", ":2368", ":9000"]):
+            env_type = "local_http_integration"
+        else:
+            env_type = "live_platform"
+
         evidence = CertificationEvidence(
             destination_name=dest_record.name,
             destination_url=dest_record.url,
             connector_key=dest_record.connector_key,
-            environment="simulation" if settings.SIMULATION_MODE else "live",
+            environment=env_type,
             started_at=start_dt,
             completed_at=end_dt,
             duration_seconds=duration,

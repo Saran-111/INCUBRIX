@@ -80,7 +80,7 @@ pip install -r requirements.txt
 # 4. Copy environment configuration
 cp .env.example .env
 
-# 5. Run test suite (26 unit, integration, and contract tests)
+# 5. Run test suite (41 unit, integration, and contract tests)
 pytest -v
 
 # 6. Start server
@@ -90,13 +90,16 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 ### Option B: Docker Compose (One-Command Clean Machine)
 
 ```bash
-# 1. Start all containers (Service + MinIO + Ghost + Lemmy)
+# 1. Start all containers (Service + MinIO + Ghost + Lemmy Stateful Mock)
 docker compose up -d
 
-# 2. Run all tests inside container
+# 2. Run simulation test suite inside container (Safe Default)
 docker compose exec service pytest -v
 
-# 3. Access web dashboard & API docs
+# 3. Run real-HTTP local integration tests (Against live container TCP sockets)
+docker compose exec -e SIMULATION_MODE=false service pytest -v tests/test_local_instances.py tests/test_live_certification.py
+
+# 4. Access web dashboard & API docs
 # Dashboard: http://localhost:8000/
 # OpenAPI Docs: http://localhost:8000/docs
 ```

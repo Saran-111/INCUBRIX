@@ -10,7 +10,7 @@ services:
       - "8000:8000"
     environment:
       - APP_NAME=IncuBrix Long-Tail Distribution Connector Service
-      - SIMULATION_MODE=true
+      - SIMULATION_MODE=${SIMULATION_MODE:-true}
       - STORAGE_TYPE=s3
       - S3_ENDPOINT_URL=http://minio:9000
       - S3_ACCESS_KEY=minioadmin
@@ -19,8 +19,12 @@ services:
       - GHOST_BASE_URL=http://ghost:2368
       - LEMMY_BASE_URL=http://lemmy:8536
     depends_on:
-      - minio
-      - ghost
+      minio:
+        condition: service_healthy
+      ghost:
+        condition: service_started
+      lemmy:
+        condition: service_healthy
     volumes:
       - ./data/evidence:/app/data/evidence
       - ./storage_data:/app/storage_data
@@ -36,6 +40,11 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
     command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - minio_data:/data
     restart: unless-stopped
@@ -58,6 +67,11 @@ services:
     volumes:
       - ./app/mocks/lemmy_service.py:/app/lemmy_service.py:ro
     command: python -u /app/lemmy_service.py
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8536/api/v3/post?id=0')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
     restart: unless-stopped
 
 volumes:

@@ -121,7 +121,7 @@ async def test_live_certification_with_simulation_disabled(live_services):
         )
         evidence_lemmy = await certification_harness.certify_destination(lemmy_record, lemmy_conn)
         assert evidence_lemmy.verdict == "PASSED"
-        assert evidence_lemmy.environment == "live"
+        assert evidence_lemmy.environment == "local_http_integration"
         assert Path(evidence_lemmy.evidence_file).exists()
         assert evidence_lemmy.status_response["status"] == "live"
         assert evidence_lemmy.delete_response["deleted"] is True
@@ -148,7 +148,7 @@ async def test_live_certification_with_simulation_disabled(live_services):
         )
         evidence_wh = await certification_harness.certify_destination(wh_record, wh_conn)
         assert evidence_wh.verdict == "PASSED"
-        assert evidence_wh.environment == "live"
+        assert evidence_wh.environment == "local_http_integration"
         assert Path(evidence_wh.evidence_file).exists()
         assert evidence_wh.status_response["status"] == "live"
         assert evidence_wh.delete_response["deleted"] is True
