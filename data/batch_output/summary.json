@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-10-24T05:10:03Z",
+  "timestamp": "2026-10-25T04:21:47Z",
   "total_inputs": 3,
   "succeeded": 2,
   "failed": 1,
-  "total_duration_s": 1.34,
+  "total_duration_s": 1.349,
   "api_url": "http://127.0.0.1:8000",
   "results": [
     {
       "item_id": "test_assisted",
       "status": "succeeded",
-      "job_id": "job_d019802ea43b",
+      "job_id": "job_dbac1a9d6fe1",
       "result": {
-        "platform_post_id": "pack_765e2731c0",
+        "platform_post_id": "pack_679ca64748",
         "live_url": "https://reddit.com/r/SaaS/submit",
         "status": "ready_for_manual_post"
       },
@@ -29,10 +29,10 @@
         },
         "seed": 42,
         "timings": {
-          "total_duration_s": 0.0,
+          "total_duration_s": 0.001,
           "rules_check_ms": 12.5,
           "tailoring_ms": 15.2,
-          "publish_ms": -27.3
+          "publish_ms": -26.9
         },
         "cost_estimate_usd": 0.0002,
         "warnings": [],
@@ -40,15 +40,15 @@
         "rights_information": "Candidate proprietary code submitted to IncuBrix assessment evaluation."
       },
       "error": null,
-      "duration_s": 1.335
+      "duration_s": 1.342
     },
     {
       "item_id": "test_discourse",
       "status": "succeeded",
-      "job_id": "job_e411eb5b9d8b",
+      "job_id": "job_ad5f142d1bba",
       "result": {
-        "platform_post_id": "discourse_805cea5c0b",
-        "live_url": "https://mock.discourse.org/p/discourse_805cea5c0b",
+        "platform_post_id": "discourse_c685281ad1",
+        "live_url": "https://mock.discourse.org/p/discourse_c685281ad1",
         "status": "published"
       },
       "manifest": {
@@ -65,10 +65,10 @@
         },
         "seed": 42,
         "timings": {
-          "total_duration_s": 0.054,
+          "total_duration_s": 0.066,
           "rules_check_ms": 12.5,
           "tailoring_ms": 15.2,
-          "publish_ms": 25.9
+          "publish_ms": 38.0
         },
         "cost_estimate_usd": 0.0002,
         "warnings": [],
@@ -76,12 +76,12 @@
         "rights_information": "Candidate proprietary code submitted to IncuBrix assessment evaluation."
       },
       "error": null,
-      "duration_s": 1.012
+      "duration_s": 0.995
     },
     {
       "item_id": "test_promo_violation",
       "status": "failed",
-      "job_id": "job_6a09416edc3f",
+      "job_id": "job_4278636bf23a",
       "result": null,
       "manifest": null,
       "error": {
@@ -97,7 +97,7 @@
           ]
         }
       },
-      "duration_s": 0.787
+      "duration_s": 0.768
     }
   ]
 }

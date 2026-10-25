@@ -1,7 +1,7 @@
 {
   "item_id": "test_promo_violation",
   "status": "failed",
-  "job_id": "job_6a09416edc3f",
+  "job_id": "job_4278636bf23a",
   "result": null,
   "manifest": null,
   "error": {
@@ -17,5 +17,5 @@
       ]
     }
   },
-  "duration_s": 0.787
+  "duration_s": 0.768
 }

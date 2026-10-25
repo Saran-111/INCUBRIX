@@ -1,10 +1,10 @@
 {
   "item_id": "test_discourse",
   "status": "succeeded",
-  "job_id": "job_e411eb5b9d8b",
+  "job_id": "job_ad5f142d1bba",
   "result": {
-    "platform_post_id": "discourse_805cea5c0b",
-    "live_url": "https://mock.discourse.org/p/discourse_805cea5c0b",
+    "platform_post_id": "discourse_c685281ad1",
+    "live_url": "https://mock.discourse.org/p/discourse_c685281ad1",
     "status": "published"
   },
   "manifest": {
@@ -21,10 +21,10 @@
     },
     "seed": 42,
     "timings": {
-      "total_duration_s": 0.054,
+      "total_duration_s": 0.066,
       "rules_check_ms": 12.5,
       "tailoring_ms": 15.2,
-      "publish_ms": 25.9
+      "publish_ms": 38.0
     },
     "cost_estimate_usd": 0.0002,
     "warnings": [],
@@ -32,5 +32,5 @@
     "rights_information": "Candidate proprietary code submitted to IncuBrix assessment evaluation."
   },
   "error": null,
-  "duration_s": 1.012
+  "duration_s": 0.995
 }
