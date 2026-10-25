@@ -123,7 +123,7 @@ def populate_form():
     ws_int.cell(5, 4, "docker-compose.yml ; pytest.ini ; .env.example")
     
     ws_int.cell(6, 3, "Yes")
-    ws_int.cell(6, 4, "openapi.yaml ; http://localhost:8000/docs")
+    ws_int.cell(6, 4, "openapi.yaml ; https://incubrix-0of8.onrender.com/docs (or http://localhost:8000/docs)")
 
     ws_int.cell(7, 3, "Yes")
     ws_int.cell(7, 4, "app/jobs/worker.py ; app/api/v1/jobs.py")
