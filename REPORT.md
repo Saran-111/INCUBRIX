@@ -62,7 +62,7 @@ All empirical measurements below were collected on an 8-Core Intel i7 laptop run
 | **Local HTTP Integration Cleanup (Webhook HMAC)**| Local HTTP Integration | &lt; 10 minutes | **1.458 seconds** | `data/evidence/cert_webhook_hmac_*.json` |
 | **Duplicate Posts Under Retry** | Measured | Must be **0** | **0 duplicates created** | `tests/test_idempotency.py` |
 | **Rule Safety (Frequency / Promo)** | Measured | 0 false negatives | **100% caught** (0 missed) | `tests/test_rules.py` |
-| **Test Suite Pass Rate** | Measured | 100% Pass | **41 / 41 Passed (10.86s)** | `pytest.ini` / `data/evidence/` |
+| **Test Suite Pass Rate** | Measured | 100% Pass | **42 / 42 Passed (11.36s)** | `pytest.ini` / `data/evidence/` |
 
 ### Evidence Labeling & Certification Taxonomy:
 1. **Simulation Mode (`environment: "simulation"`)**: Validates internal state transitions, serialization schemas, anti-spam rules, and retry idempotency in-memory with zero external dependencies.
@@ -71,7 +71,7 @@ All empirical measurements below were collected on an 8-Core Intel i7 laptop run
 
 ### Reproducibility of Benchmark Evidence:
 - **Simulation Suite (39 Tests)**: Run `pytest tests/ -k "not test_live_certification and not test_local_instances"`. Validates contract formats, rules engine constraints, and deterministic race-condition locks without external dependencies.
-- **Local HTTP Integration Suite (2 Tests)**: Run `pytest tests/test_live_certification.py tests/test_local_instances.py`. Spins up real TCP sockets on localhost with `SIMULATION_MODE=false`, executing true HTTP POST/GET/DELETE cycles and generating verifiable evidence files with `"environment": "local_http_integration"`.
+- **Local HTTP Integration Suite (3 Tests)**: Run `pytest tests/test_live_certification.py tests/test_local_instances.py`. Spins up real TCP sockets on localhost with `SIMULATION_MODE=false`, executing true HTTP POST/GET/DELETE cycles and generating verifiable evidence files with `"environment": "local_http_integration"`.
 
 ### Benchmark Breakdown: Top-10 Recommender Precision
 Evaluated against the gold-standard annotated benchmark (`data/labelled_benchmark.json`) covering 5 distinct creator archetypes:

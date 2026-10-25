@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-41%2F41%20Passing-brightgreen.svg)](https://pytest.org)
+[![Tests](https://img.shields.io/badge/Tests-42%2F42%20Passing-brightgreen.svg)](https://pytest.org)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1.0-6BA539.svg)](file:///openapi.yaml)
 
 A production-grade, containerised connector service and rule-respecting distribution engine built for **IncuBrix Engineering Assessment 4**. 
@@ -80,7 +80,7 @@ pip install -r requirements.txt
 # 4. Copy environment configuration
 cp .env.example .env
 
-# 5. Run test suite (41 unit, integration, and contract tests)
+# 5. Run test suite (42 unit, integration, and contract tests)
 pytest -v
 
 # 6. Start server
@@ -109,7 +109,7 @@ docker compose exec -e SIMULATION_MODE=false service pytest -v tests/test_local_
 ## 🧪 Testing & Verification
 
 ### Running the Full Test Suite
-The service includes 41 comprehensive tests covering all Appendix A contract methods, posting rules, idempotency with race condition locks, metadata hashing, edge cases, 1,000-row catalogue import benchmark, recommender precision, and both simulation & live HTTP certification suites:
+The service includes 42 comprehensive tests covering all Appendix A contract methods, posting rules, idempotency with race condition locks, metadata hashing, edge cases, 1,000-row catalogue import benchmark, recommender precision, cryptographic HMAC verification, and both simulation & local HTTP integration certification suites:
 
 ```bash
 pytest -v

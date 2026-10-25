@@ -68,7 +68,7 @@ services:
       - ./app/mocks/lemmy_service.py:/app/lemmy_service.py:ro
     command: python -u /app/lemmy_service.py
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8536/api/v3/post?id=0')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8536/health')"]
       interval: 3s
       timeout: 3s
       retries: 5

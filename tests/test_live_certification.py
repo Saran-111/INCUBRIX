@@ -4,22 +4,38 @@ import json
 import socketserver
 import threading
 from pathlib import Path
+import httpx
 import pytest
 from app.certification.harness import certification_harness
 from app.catalogue.models import DestinationRecord
-from app.connectors.base import Connection
+from app.connectors.base import Connection, Rendition, Destination
+from app.connectors.registry import connector_registry
 from app.core.config import settings
+from app.core.errors import ErrorCodes, IncubrixAPIException
+from app.core.security import verify_hmac_signature, sign_json_payload
 from app.mocks.lemmy_service import StatefulLemmyHandler
 
 class StatefulWebhookReceiverHandler(http.server.BaseHTTPRequestHandler):
     """
-    Real HTTP Webhook receiver adhering to the IncuBrix HMAC status and deletion contract.
+    Local HTTP integration test receiver adhering to the IncuBrix HMAC status and deletion contract.
+    Cryptographically verifies X-IncuBrix-Signature on incoming requests using the shared secret.
     """
     posts = {}
+    shared_secret = "live_test_secret"
 
     def do_POST(self):
         content_len = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(content_len) if content_len > 0 else b"{}"
+
+        # Cryptographic HMAC verification
+        sig = self.headers.get(settings.WEBHOOK_SIGNATURE_HEADER, "")
+        if not sig or not verify_hmac_signature(body, sig, self.shared_secret):
+            self.send_response(401)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "unauthorized", "message": "Invalid HMAC signature"}).encode("utf-8"))
+            return
+
         try:
             payload = json.loads(body.decode("utf-8"))
         except Exception:
@@ -68,7 +84,7 @@ class StatefulWebhookReceiverHandler(http.server.BaseHTTPRequestHandler):
 
 @pytest.fixture(scope="module")
 def live_services():
-    """Starts real HTTP servers for Lemmy and Webhook HMAC."""
+    """Starts local HTTP integration test servers for Lemmy and Webhook HMAC."""
     lemmy_srv = socketserver.TCPServer(("127.0.0.1", 0), StatefulLemmyHandler)
     lemmy_port = lemmy_srv.server_address[1]
     lemmy_th = threading.Thread(target=lemmy_srv.serve_forever, daemon=True)
@@ -92,16 +108,16 @@ def live_services():
 @pytest.mark.asyncio
 async def test_live_certification_with_simulation_disabled(live_services):
     """
-    Runs the full certification harness with SIMULATION_MODE disabled.
-    Proves real platform HTTP APIs accept publish, confirm live status, execute deletion,
-    verify post-deletion absence, and save 'environment: live' evidence.
+    Runs the certification harness with SIMULATION_MODE disabled against local HTTP integration test servers.
+    Validates that real network socket requests confirm publish, live status, deletion, and 404 absence,
+    generating evidence categorized with environment='local_http_integration'.
     """
     orig_mode = settings.SIMULATION_MODE
     settings.SIMULATION_MODE = False
     try:
-        # 1. Live Lemmy certification
+        # 1. Local HTTP Integration Lemmy certification
         lemmy_record = DestinationRecord(
-            name="Live Integration Lemmy Instance",
+            name="Local Integration Lemmy Mock Instance",
             url=live_services["lemmy"],
             platform_key="lemmy",
             connector_key="lemmy",
@@ -127,9 +143,9 @@ async def test_live_certification_with_simulation_disabled(live_services):
         assert evidence_lemmy.delete_response["deleted"] is True
         assert evidence_lemmy.post_delete_verification["status"] == "deleted"
 
-        # 2. Live Webhook HMAC certification
+        # 2. Local HTTP Integration Webhook HMAC certification
         wh_record = DestinationRecord(
-            name="Live Integration Partner Webhook",
+            name="Local Integration Partner Webhook",
             url=live_services["webhook_hmac"],
             platform_key="webhook_hmac",
             connector_key="webhook_hmac",
@@ -156,3 +172,64 @@ async def test_live_certification_with_simulation_disabled(live_services):
 
     finally:
         settings.SIMULATION_MODE = orig_mode
+
+@pytest.mark.asyncio
+async def test_webhook_hmac_receiver_rejects_tampered_payload_or_bad_signature(live_services):
+    """
+    Security check: Validates that the local integration test receiver strictly enforces
+    HMAC-SHA256 signature verification and rejects requests with modified payloads or invalid signatures.
+    """
+    wh_url = live_services["webhook_hmac"]
+    shared_secret = "live_test_secret"
+    
+    # 1. Normal valid payload
+    valid_data = {"event": "content.publish", "title": "Real Test", "body": "Body content"}
+    serialized, valid_sig = sign_json_payload(valid_data, shared_secret)
+
+    # 2. Tampered payload with valid_sig from different data
+    tampered_serialized = json.dumps({"event": "content.publish", "title": "Tampered Title", "body": "Malicious edit"})
+
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        # A. Tampered body with original signature -> Rejected with 401
+        resp_tampered = await client.post(
+            wh_url,
+            content=tampered_serialized,
+            headers={
+                "Content-Type": "application/json",
+                settings.WEBHOOK_SIGNATURE_HEADER: valid_sig
+            }
+        )
+        assert resp_tampered.status_code == 401
+        assert "Invalid HMAC signature" in resp_tampered.text
+
+        # B. Arbitrary bad signature -> Rejected with 401
+        resp_bad_sig = await client.post(
+            wh_url,
+            content=serialized,
+            headers={
+                "Content-Type": "application/json",
+                settings.WEBHOOK_SIGNATURE_HEADER: "deadbeef00112233445566778899aabbccddeeff"
+            }
+        )
+        assert resp_bad_sig.status_code == 401
+
+        # C. Missing signature header -> Rejected with 401
+        resp_no_sig = await client.post(
+            wh_url,
+            content=serialized,
+            headers={"Content-Type": "application/json"}
+        )
+        assert resp_no_sig.status_code == 401
+
+        # D. Authentic payload and valid signature -> Accepted with 200
+        resp_authentic = await client.post(
+            wh_url,
+            content=serialized,
+            headers={
+                "Content-Type": "application/json",
+                settings.WEBHOOK_SIGNATURE_HEADER: valid_sig
+            }
+        )
+        assert resp_authentic.status_code == 200
+        assert resp_authentic.json().get("status") == "received"
+

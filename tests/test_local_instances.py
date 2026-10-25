@@ -24,8 +24,8 @@ def lemmy_test_server():
 async def test_lemmy_real_http_lifecycle(lemmy_test_server):
     """
     Integration Standard 1 & Must-have 8:
-    Tests Lemmy connector against real HTTP instance with SIMULATION_MODE disabled.
-    Strictly verifies full real HTTP lifecycle:
+    Tests Lemmy connector against local HTTP integration test server with SIMULATION_MODE disabled.
+    Strictly verifies full real HTTP lifecycle over TCP socket:
       1. publish -> real HTTP POST to /api/v3/post
       2. get_status -> real HTTP GET to /api/v3/post?id=... (verifies 'live')
       3. delete -> real HTTP POST to /api/v3/post/delete (verifies deleted=True)

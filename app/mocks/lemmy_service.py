@@ -78,6 +78,13 @@ class StatefulLemmyHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/health":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"status": "healthy"}')
+            return
+
         query = urllib.parse.parse_qs(parsed.query)
         post_id = str(query.get("id", [""])[0])
         if post_id in posts and not posts[post_id].get("deleted", False):
