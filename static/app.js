@@ -146,11 +146,14 @@ function setupPublishForm() {
     const tags = rawTags.split(",").map(t => t.trim()).filter(Boolean);
     const isPromo = document.getElementById("pub-is-promo").checked;
     const aiGen = document.getElementById("pub-ai-generated").checked;
+    const mediaUrlInput = document.getElementById("pub-media-url");
+    const mediaUrls = mediaUrlInput && mediaUrlInput.value.trim() ? [mediaUrlInput.value.trim()] : [];
 
     const payload = {
       rendition: {
         title,
         body,
+        media_urls: mediaUrls,
         tags,
         is_promotional: isPromo,
         ai_generated: aiGen
