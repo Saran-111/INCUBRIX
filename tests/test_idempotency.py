@@ -149,16 +149,23 @@ def test_canonical_request_hash_detects_custom_params_changes():
 async def test_api_endpoint_concurrent_idempotency_requests():
     """
     Validates FastAPI endpoint handling of concurrent requests with the same Idempotency-Key.
-    Exercises the exact 'import asyncio' line and async wait logic in connectors.py!
+    Guarantees deterministic race-condition coverage:
+    1. Holds request 1 open with controlled mock delay.
+    2. Waits deterministically until request 1 enters IN_PROGRESS.
+    3. Sends request 2 while request 1 is still in flight.
+    4. Asserts both return identical response and connector.publish() is called exactly once.
     """
     from app.main import app
     import httpx
     
-    idem_key = "api_concurrent_test_key_777"
+    mock_state.reset_triggers()
+    mock_state.publish_delay_s = 0.25
+    
+    idem_key = "api_deterministic_concurrent_key_999"
     payload = {
         "rendition": {
-            "title": "API Concurrency Test",
-            "body": "Testing FastAPI endpoint under race conditions"
+            "title": "Deterministic API Concurrency Test",
+            "body": "Testing FastAPI endpoint under guaranteed race conditions"
         },
         "destination": {
             "name": "API Test Forum",
@@ -170,14 +177,39 @@ async def test_api_endpoint_concurrent_idempotency_requests():
     headers = {"Idempotency-Key": idem_key}
 
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
-        # Send two requests concurrently to the real FastAPI endpoint
-        r1, r2 = await asyncio.gather(
-            client.post("/connector/v1/discourse/publish", json=payload, headers=headers),
+        # Start request 1 (which will be held open by publish_delay_s)
+        req1_task = asyncio.create_task(
             client.post("/connector/v1/discourse/publish", json=payload, headers=headers)
         )
+
+        # Deterministically wait until request 1 has created the record and entered IN_PROGRESS
+        rec = None
+        for _ in range(50):
+            rec = await idempotency_store.get(idem_key)
+            if rec is not None and rec.status == "IN_PROGRESS":
+                break
+            await asyncio.sleep(0.01)
+
+        assert rec is not None, "Idempotency record was not created"
+        assert rec.status == "IN_PROGRESS", "Request 1 did not enter IN_PROGRESS state before request 2"
+
+        # Now send request 2 while request 1 is guaranteed to be in flight
+        req2_task = asyncio.create_task(
+            client.post("/connector/v1/discourse/publish", json=payload, headers=headers)
+        )
+
+        # Await both requests
+        r1, r2 = await asyncio.gather(req1_task, req2_task)
+
         assert r1.status_code == 200
         assert r2.status_code == 200
         data1 = r1.json()
         data2 = r2.json()
         assert data1["platform_post_id"] == data2["platform_post_id"]
         assert data1["live_url"] == data2["live_url"]
+        
+        # Crucial assertion: connector.publish() was called EXACTLY ONCE
+        assert mock_state.publish_call_count == 1, (
+            f"Expected publish to be called exactly once, but was called {mock_state.publish_call_count} times!"
+        )
+

@@ -17,6 +17,8 @@ class MockPlatformState:
         self.trigger_content_rejection: bool = False
         self.trigger_renamed_field: bool = False
         self.trigger_timeout: bool = False
+        self.publish_delay_s: float = 0.0
+        self.publish_call_count: int = 0
 
     def reset_triggers(self):
         self.trigger_429 = False
@@ -25,6 +27,8 @@ class MockPlatformState:
         self.trigger_content_rejection = False
         self.trigger_renamed_field = False
         self.trigger_timeout = False
+        self.publish_delay_s = 0.0
+        self.publish_call_count = 0
 
 mock_state = MockPlatformState()
 
@@ -32,6 +36,11 @@ async def simulate_network_call(connector_key: str, action: str, payload: Dict[s
     """
     Simulates remote platform HTTP calls with realistic behavior and injected test triggers.
     """
+    if action == "publish":
+        mock_state.publish_call_count += 1
+        if mock_state.publish_delay_s > 0:
+            await asyncio.sleep(mock_state.publish_delay_s)
+
     if settings.MOCK_LATENCY_MS > 0:
         await asyncio.sleep(settings.MOCK_LATENCY_MS / 1000.0)
 

@@ -61,3 +61,76 @@ async def test_connector_contract_lifecycle(connector_key):
     # 4. delete
     del_res = await connector.delete(pub_res.platform_post_id, conn)
     assert del_res.deleted is True
+
+@pytest.mark.asyncio
+async def test_webhook_hmac_unsupported_receiver_lifecycle_fails(monkeypatch):
+    """
+    Validates that in non-simulation mode, an unverified webhook receiver
+    (e.g., returning 501 Not Implemented or missing status field) explicitly raises DEST_SPEC_VIOLATION,
+    and NEVER returns a fabricated 'live' status or unverified deleted=True.
+    """
+    from unittest.mock import AsyncMock, MagicMock
+    from app.core.config import settings
+    from app.core.errors import ErrorCodes, IncubrixAPIException
+    import httpx
+
+    monkeypatch.setattr(settings, "SIMULATION_MODE", False)
+    connector = connector_registry.get("webhook_hmac")
+    conn = Connection(base_url="https://partner-generic.com/webhook", secret="test_secret")
+
+    # 1. Receiver returns 501 Not Implemented on status probe
+    mock_resp_501 = MagicMock(spec=httpx.Response)
+    mock_resp_501.status_code = 501
+    mock_resp_501.text = "Not Implemented"
+    mock_resp_501.headers = {"content-type": "text/plain"}
+
+    mock_post = AsyncMock(return_value=mock_resp_501)
+    monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
+
+    with pytest.raises(IncubrixAPIException) as exc_info:
+        await connector.get_status("wh_test_123", conn)
+    assert exc_info.value.code == ErrorCodes.DEST_SPEC_VIOLATION
+    assert "unsupported" in exc_info.value.message.lower()
+
+    # 2. Receiver returns 501 on delete probe
+    with pytest.raises(IncubrixAPIException) as exc_info_del:
+        await connector.delete("wh_test_123", conn)
+    assert exc_info_del.value.code == ErrorCodes.DEST_SPEC_VIOLATION
+    assert "unsupported" in exc_info_del.value.message.lower()
+
+@pytest.mark.asyncio
+async def test_webhook_hmac_verified_receiver_lifecycle_succeeds(monkeypatch):
+    """
+    Validates that in non-simulation mode, when the partner receiver conforms to the
+    IncuBrix verification contract (signed POST with explicit status/deleted fields),
+    status and deletion return verified results.
+    """
+    from unittest.mock import AsyncMock, MagicMock
+    from app.core.config import settings
+    import httpx
+
+    monkeypatch.setattr(settings, "SIMULATION_MODE", False)
+    connector = connector_registry.get("webhook_hmac")
+    conn = Connection(base_url="https://partner-compliant.com/webhook", secret="test_secret")
+
+    # Mock receiver status response: 200 OK with {"status": "live", "live_url": "https://..."}
+    mock_resp_status = MagicMock(spec=httpx.Response)
+    mock_resp_status.status_code = 200
+    mock_resp_status.headers = {"content-type": "application/json"}
+    mock_resp_status.json = MagicMock(return_value={"status": "live", "live_url": "https://partner-compliant.com/posts/wh_123"})
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", AsyncMock(return_value=mock_resp_status))
+    st = await connector.get_status("wh_123", conn)
+    assert st.status == "live"
+    assert "partner-compliant.com" in st.live_url
+
+    # Mock receiver delete response: 200 OK with {"deleted": true}
+    mock_resp_del = MagicMock(spec=httpx.Response)
+    mock_resp_del.status_code = 200
+    mock_resp_del.headers = {"content-type": "application/json"}
+    mock_resp_del.json = MagicMock(return_value={"deleted": True})
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", AsyncMock(return_value=mock_resp_del))
+    d = await connector.delete("wh_123", conn)
+    assert d.deleted is True
+

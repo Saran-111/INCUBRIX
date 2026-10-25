@@ -68,13 +68,126 @@ class WebhookHmacConnector(BaseConnector):
             )
 
     async def get_status(self, platform_post_id: str, connection: Connection) -> StatusResult:
+        target_url = connection.base_url
         if settings.SIMULATION_MODE:
             res = await simulate_network_call(self.key, "get_status", {"platform_post_id": platform_post_id})
             return StatusResult(**res)
-        return StatusResult(status="live", live_url=connection.base_url or "https://partner.com")
+        
+        if not target_url:
+            raise IncubrixAPIException(
+                code=ErrorCodes.DEST_SPEC_VIOLATION,
+                message="Receiver status verification unsupported: No receiver base_url configured."
+            )
+
+        # Real HTTP HMAC Status Verification Probe:
+        # Requires the receiver to implement the IncuBrix status verification contract
+        secret = connection.secret or settings.HMAC_SECRET
+        payload = {"event": "content.status", "platform_post_id": platform_post_id}
+        serialized, sig = sign_json_payload(payload, secret)
+        headers = {
+            "Content-Type": "application/json",
+            settings.WEBHOOK_SIGNATURE_HEADER: sig
+        }
+
+        status_url = f"{target_url.rstrip('/')}/status"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            try:
+                resp = await client.post(status_url, content=serialized, headers=headers)
+                if resp.status_code == 200:
+                    data = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+                    verified_status = data.get("status")
+                    if not verified_status:
+                        raise IncubrixAPIException(
+                            code=ErrorCodes.DEST_SPEC_VIOLATION,
+                            message="Receiver status verification unsupported: Response missing explicit 'status' field."
+                        )
+                    return StatusResult(
+                        status=verified_status,
+                        live_url=data.get("live_url", target_url)
+                    )
+                elif resp.status_code == 404:
+                    data = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+                    if data.get("status") == "deleted" or data.get("error") == "not_found":
+                        return StatusResult(status="deleted", live_url="")
+                    raise IncubrixAPIException(
+                        code=ErrorCodes.DEST_SPEC_VIOLATION,
+                        message="Receiver status verification unsupported: Endpoint returned 404 without contract verification."
+                    )
+                elif resp.status_code in (405, 501):
+                    raise IncubrixAPIException(
+                        code=ErrorCodes.DEST_SPEC_VIOLATION,
+                        message="Receiver status verification unsupported: Endpoint does not implement status contract."
+                    )
+                else:
+                    raise IncubrixAPIException(
+                        code=ErrorCodes.PLATFORM_UNAVAILABLE,
+                        message=f"Receiver status verification failed with HTTP {resp.status_code}",
+                        retryable=True
+                    )
+            except httpx.RequestError as exc:
+                raise IncubrixAPIException(
+                    code=ErrorCodes.PLATFORM_UNAVAILABLE,
+                    message=f"Failed to reach receiver for status verification: {exc}",
+                    retryable=True
+                )
 
     async def delete(self, platform_post_id: str, connection: Connection) -> DeleteResult:
+        target_url = connection.base_url
         if settings.SIMULATION_MODE:
             res = await simulate_network_call(self.key, "delete", {"platform_post_id": platform_post_id})
             return DeleteResult(**res)
-        return DeleteResult(deleted=True)
+
+        if not target_url:
+            raise IncubrixAPIException(
+                code=ErrorCodes.DEST_SPEC_VIOLATION,
+                message="Receiver deletion unsupported: No receiver base_url configured."
+            )
+
+        secret = connection.secret or settings.HMAC_SECRET
+        payload = {"event": "content.delete", "platform_post_id": platform_post_id}
+        serialized, sig = sign_json_payload(payload, secret)
+        headers = {
+            "Content-Type": "application/json",
+            settings.WEBHOOK_SIGNATURE_HEADER: sig
+        }
+
+        delete_url = f"{target_url.rstrip('/')}/delete"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            try:
+                resp = await client.post(delete_url, content=serialized, headers=headers)
+                if resp.status_code in (200, 204):
+                    data = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+                    if "deleted" in data:
+                        return DeleteResult(deleted=bool(data["deleted"]))
+                    elif resp.status_code == 204:
+                        return DeleteResult(deleted=True)
+                    else:
+                        raise IncubrixAPIException(
+                            code=ErrorCodes.DEST_SPEC_VIOLATION,
+                            message="Receiver deletion unsupported: Response missing explicit deletion confirmation."
+                        )
+                elif resp.status_code == 404:
+                    data = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+                    if data.get("status") == "deleted" or data.get("deleted") is True or data.get("error") == "not_found":
+                        return DeleteResult(deleted=True)
+                    raise IncubrixAPIException(
+                        code=ErrorCodes.DEST_SPEC_VIOLATION,
+                        message="Receiver deletion unsupported: Endpoint returned 404 without contract verification."
+                    )
+                elif resp.status_code in (405, 501):
+                    raise IncubrixAPIException(
+                        code=ErrorCodes.DEST_SPEC_VIOLATION,
+                        message="Receiver deletion unsupported: Partner endpoint does not implement deletion contract."
+                    )
+                else:
+                    raise IncubrixAPIException(
+                        code=ErrorCodes.PLATFORM_UNAVAILABLE,
+                        message=f"Webhook deletion verification failed with HTTP {resp.status_code}",
+                        retryable=True
+                    )
+            except httpx.RequestError as exc:
+                raise IncubrixAPIException(
+                    code=ErrorCodes.PLATFORM_UNAVAILABLE,
+                    message=f"Failed to reach receiver for deletion: {exc}",
+                    retryable=True
+                )
