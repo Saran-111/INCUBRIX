@@ -9,6 +9,7 @@ from app.catalogue.models import DestinationRecord
 from app.catalogue.importer import catalogue_store
 from app.connectors.base import Rendition, Destination, Connection
 from app.connectors.registry import connector_registry
+from app.core.config import settings
 from app.core.errors import ErrorCodes, IncubrixAPIException
 from app.core.logging import logger
 
@@ -16,12 +17,14 @@ class CertificationEvidence(BaseModel):
     destination_name: str
     destination_url: str
     connector_key: str
+    environment: str = "simulation"
     started_at: str
     completed_at: str
     duration_seconds: float
     publish_response: Dict[str, Any]
     status_response: Dict[str, Any]
     delete_response: Dict[str, Any]
+    post_delete_verification: Dict[str, Any] = {}
     verdict: str  # PASSED, FAILED
     error_details: Optional[str] = None
     evidence_file: str
@@ -103,6 +106,12 @@ class CertificationHarness:
             # 2. Check status (Confirm live)
             st_res = await connector.get_status(post_id, connection)
             status_data = st_res.model_dump()
+            valid_live_statuses = ("live", "published", "ready_for_manual_post", "packaged")
+            if st_res.status not in valid_live_statuses:
+                raise IncubrixAPIException(
+                    code=ErrorCodes.PLATFORM_UNAVAILABLE,
+                    message=f"Certification failed: status '{st_res.status}' is not live"
+                )
 
             # 3. Clean up / Delete (Must-have 5: deleted within 10 minutes)
             del_res = await connector.delete(post_id, connection)
@@ -112,6 +121,15 @@ class CertificationHarness:
                 raise IncubrixAPIException(
                     code=ErrorCodes.PLATFORM_CONTENT_REJECTED,
                     message="Certification failed: Delete confirmation returned False"
+                )
+
+            # 4. Confirm deletion: post-deletion verification
+            post_del_res = await connector.get_status(post_id, connection)
+            post_del_data = post_del_res.model_dump()
+            if post_del_res.status == "live":
+                raise IncubrixAPIException(
+                    code=ErrorCodes.PLATFORM_UNAVAILABLE,
+                    message="Certification failed: Post is still reported live after deletion"
                 )
 
             verdict = "PASSED"
@@ -136,12 +154,14 @@ class CertificationHarness:
             destination_name=dest_record.name,
             destination_url=dest_record.url,
             connector_key=dest_record.connector_key,
+            environment="simulation" if settings.SIMULATION_MODE else "live",
             started_at=start_dt,
             completed_at=end_dt,
             duration_seconds=duration,
             publish_response=pub_data,
             status_response=status_data,
             delete_response=del_data,
+            post_delete_verification=post_del_data if 'post_del_data' in locals() else {},
             verdict=verdict,
             error_details=error_msg,
             evidence_file=str(evidence_path)

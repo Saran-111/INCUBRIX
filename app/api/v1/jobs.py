@@ -133,10 +133,8 @@ async def create_publish_job(
     Integration Standard 3 & 4:
     Async background jobs returning 202 with job_id, and safe retries via Idempotency-Key.
     """
-    import hashlib
-    req_content = f"{request.destination.connector_key}:{request.destination.url}:{request.rendition.title or ''}:{request.rendition.body}:{','.join(request.rendition.tags)}"
-    req_hash = hashlib.sha256(req_content.encode("utf-8")).hexdigest()
-    
+    from app.core.idempotency import compute_request_hash
+    req_hash = compute_request_hash(request.rendition, request.destination)
     idem_key = idempotency_key or f"job_{req_hash[:16]}"
 
     # Idempotency check: sending the same request twice with the same key returns the same job

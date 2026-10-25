@@ -66,10 +66,8 @@ async def invoke_connector_method(
             connector_key=connector_key
         )
         
-        import hashlib
-        req_content = f"{connector_key}:{dest.url}:{payload.rendition.title or ''}:{payload.rendition.body}:{','.join(payload.rendition.tags)}"
-        req_hash = hashlib.sha256(req_content.encode("utf-8")).hexdigest()
-        
+        from app.core.idempotency import compute_request_hash
+        req_hash = compute_request_hash(payload.rendition, dest, connector_key)
         idem_key = idempotency_key_header or payload.idempotency_key or f"publish_{connector_key}_{req_hash[:16]}"
         
         # Check idempotency
@@ -82,8 +80,24 @@ async def invoke_connector_method(
                     status_code=409,
                     retryable=False
                 )
+            if record.status == "IN_PROGRESS":
+                try:
+                    await asyncio.wait_for(record.event.wait(), timeout=10.0)
+                except asyncio.TimeoutError:
+                    raise IncubrixAPIException(
+                        code=ErrorCodes.IDEMPOTENCY_CONFLICT,
+                        message="Concurrent request with this Idempotency-Key is currently in progress.",
+                        status_code=409,
+                        retryable=True
+                    )
             if record.status == "COMPLETED" and record.response_data:
                 return record.response_data
+            if record.status == "FAILED" and record.response_data:
+                raise IncubrixAPIException(
+                    code=record.response_data.get("code", ErrorCodes.INTERNAL_SERVER_ERROR),
+                    message=record.response_data.get("message", "Previous idempotent request failed."),
+                    status_code=record.response_status_code
+                )
 
         try:
             res = await connector.publish(payload.rendition, dest, conn, idem_key)
