@@ -3,6 +3,18 @@ import openpyxl
 def populate_form():
     wb = openpyxl.load_workbook("Assessment4_Submission_Form.xlsx")
 
+    # Sheet: 1_Your_Details
+    ws_yd = wb["1_Your_Details"]
+    ws_yd.cell(9, 2, "https://incubrix-0of8.onrender.com/")
+    ws_yd.cell(10, 2, "None (Publicly Accessible)")
+    ws_yd.cell(11, 2, "~40 seconds (Render free tier spin-up)")
+    ws_yd.cell(12, 2, "https://github.com/Saran-111/INCUBRIX")
+    ws_yd.cell(14, 2, "https://github.com/Saran-111/INCUBRIX/blob/main/REPORT.md")
+    ws_yd.cell(15, 2, "Intel i7 laptop (8-Core, 16GB RAM) + Render Cloud Container (0.1 CPU, 512MB RAM)")
+    ws_yd.cell(16, 2, "None ($0.00 - zero-cost evaluation)")
+    ws_yd.cell(17, 2, "Antigravity Agent (Gemini 3.8 Flash) - fully documented in AI_USE.md")
+    ws_yd.cell(18, 2, "28 hours")
+
     # Sheet: 2_Must_haves
     ws_mh = wb["2_Must_haves"]
     # Row 6: Exact connector contract
