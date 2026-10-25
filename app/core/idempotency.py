@@ -26,6 +26,7 @@ def compute_request_hash(rendition: Rendition, destination: Destination, connect
         "connector_key": conn_key,
         "destination_url": (destination.url or "").strip().lower().rstrip('/'),
         "surface": destination.surface,
+        "custom_params": sorted(destination.custom_params.items()) if destination.custom_params else [],
         "title": (rendition.title or "").strip(),
         "body": rendition.body.strip(),
         "tags": sorted(rendition.tags or []),

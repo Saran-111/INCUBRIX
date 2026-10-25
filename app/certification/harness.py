@@ -126,10 +126,11 @@ class CertificationHarness:
             # 4. Confirm deletion: post-deletion verification
             post_del_res = await connector.get_status(post_id, connection)
             post_del_data = post_del_res.model_dump()
-            if post_del_res.status == "live":
+            valid_deleted_statuses = ("deleted", "not_found", "archived", "ready_for_manual_post")
+            if post_del_res.status not in valid_deleted_statuses:
                 raise IncubrixAPIException(
                     code=ErrorCodes.PLATFORM_UNAVAILABLE,
-                    message="Certification failed: Post is still reported live after deletion"
+                    message=f"Certification failed: Inconclusive deletion. Status was '{post_del_res.status}', expected one of {valid_deleted_statuses}"
                 )
 
             verdict = "PASSED"

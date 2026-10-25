@@ -1,3 +1,4 @@
+import asyncio
 import pytest
 from app.connectors.base import Rendition, Destination, Connection
 from app.connectors.registry import connector_registry
@@ -133,3 +134,50 @@ def test_canonical_request_hash_detects_single_field_changes():
     canon_rendition = base_rendition.model_copy(update={"canonical_url": "https://new-canonical.com"})
     canon_hash = compute_request_hash(canon_rendition, dest)
     assert base_hash != canon_hash
+
+def test_canonical_request_hash_detects_custom_params_changes():
+    """
+    Validates that altering destination.custom_params (e.g. community_id) alters the hash.
+    """
+    from app.core.idempotency import compute_request_hash
+    dest1 = Destination(name="D1", url="https://d1.org", platform_key="lemmy", connector_key="lemmy", custom_params={"community_id": 101})
+    dest2 = Destination(name="D1", url="https://d1.org", platform_key="lemmy", connector_key="lemmy", custom_params={"community_id": 999})
+    rendition = Rendition(title="T", body="B")
+    assert compute_request_hash(rendition, dest1) != compute_request_hash(rendition, dest2)
+
+@pytest.mark.asyncio
+async def test_api_endpoint_concurrent_idempotency_requests():
+    """
+    Validates FastAPI endpoint handling of concurrent requests with the same Idempotency-Key.
+    Exercises the exact 'import asyncio' line and async wait logic in connectors.py!
+    """
+    from app.main import app
+    import httpx
+    
+    idem_key = "api_concurrent_test_key_777"
+    payload = {
+        "rendition": {
+            "title": "API Concurrency Test",
+            "body": "Testing FastAPI endpoint under race conditions"
+        },
+        "destination": {
+            "name": "API Test Forum",
+            "url": "https://api-test.discourse.org",
+            "platform_key": "discourse",
+            "connector_key": "discourse"
+        }
+    }
+    headers = {"Idempotency-Key": idem_key}
+
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        # Send two requests concurrently to the real FastAPI endpoint
+        r1, r2 = await asyncio.gather(
+            client.post("/connector/v1/discourse/publish", json=payload, headers=headers),
+            client.post("/connector/v1/discourse/publish", json=payload, headers=headers)
+        )
+        assert r1.status_code == 200
+        assert r2.status_code == 200
+        data1 = r1.json()
+        data2 = r2.json()
+        assert data1["platform_post_id"] == data2["platform_post_id"]
+        assert data1["live_url"] == data2["live_url"]
