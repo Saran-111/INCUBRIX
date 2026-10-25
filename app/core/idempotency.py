@@ -16,10 +16,17 @@ class IdempotencyRecord:
         self.completed_at: Optional[float] = None
         self.event: asyncio.Event = asyncio.Event()
 
+def _canonicalize_value(val: Any) -> Any:
+    if isinstance(val, dict):
+        return sorted([(str(k), _canonicalize_value(v)) for k, v in val.items()])
+    elif isinstance(val, (list, set, tuple)):
+        return [_canonicalize_value(v) for v in val]
+    return val
+
 def compute_request_hash(rendition: Rendition, destination: Destination, connector_key: Optional[str] = None) -> str:
     """
     Computes a canonical SHA-256 fingerprint of all fields that affect publishing,
-    including title, body, tags, media, canonical URL, promo/AI metadata, and destination settings.
+    including title, body, tags, media, canonical URL, promo/AI metadata, rendition metadata, and destination settings.
     """
     conn_key = connector_key or destination.connector_key or destination.platform_key
     canonical_dict = {
@@ -34,6 +41,7 @@ def compute_request_hash(rendition: Rendition, destination: Destination, connect
         "canonical_url": (rendition.canonical_url or "").strip(),
         "is_promotional": bool(rendition.is_promotional),
         "ai_generated": bool(rendition.ai_generated),
+        "metadata": _canonicalize_value(rendition.metadata or {}),
     }
     canonical_json = json.dumps(canonical_dict, sort_keys=True)
     return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()

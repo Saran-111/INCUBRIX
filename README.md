@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-26%2F26%20Passing-brightgreen.svg)](https://pytest.org)
+[![Tests](https://img.shields.io/badge/Tests-41%2F41%20Passing-brightgreen.svg)](https://pytest.org)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1.0-6BA539.svg)](file:///openapi.yaml)
 
 A production-grade, containerised connector service and rule-respecting distribution engine built for **IncuBrix Engineering Assessment 4**. 
@@ -106,7 +106,7 @@ docker compose exec service pytest -v
 ## 🧪 Testing & Verification
 
 ### Running the Full Test Suite
-The service includes 26 tests covering all Appendix A contract methods, posting rules, idempotency under timeout, edge cases, 1,000-row catalogue import benchmark, and recommender precision:
+The service includes 41 comprehensive tests covering all Appendix A contract methods, posting rules, idempotency with race condition locks, metadata hashing, edge cases, 1,000-row catalogue import benchmark, recommender precision, and both simulation & live HTTP certification suites:
 
 ```bash
 pytest -v

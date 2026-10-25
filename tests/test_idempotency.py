@@ -145,6 +145,17 @@ def test_canonical_request_hash_detects_custom_params_changes():
     rendition = Rendition(title="T", body="B")
     assert compute_request_hash(rendition, dest1) != compute_request_hash(rendition, dest2)
 
+def test_canonical_request_hash_detects_metadata_changes():
+    """
+    Validates that altering rendition.metadata (e.g. connector publishing flags) alters the hash.
+    """
+    from app.core.idempotency import compute_request_hash
+    dest = Destination(name="D1", url="https://d1.org", platform_key="discourse", connector_key="discourse")
+    r1 = Rendition(title="T", body="B", metadata={"pinned": False, "category_override": "general"})
+    r2 = Rendition(title="T", body="B", metadata={"pinned": True, "category_override": "general"})
+    assert compute_request_hash(r1, dest) != compute_request_hash(r2, dest)
+
+
 @pytest.mark.asyncio
 async def test_api_endpoint_concurrent_idempotency_requests():
     """

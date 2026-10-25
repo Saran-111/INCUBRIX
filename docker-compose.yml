@@ -55,22 +55,9 @@ services:
     container_name: incubrix_lemmy_mock
     ports:
       - "8536:8536"
-    command: >
-      python -c "
-      import http.server, socketserver, json
-      class H(http.server.BaseHTTPRequestHandler):
-          def do_POST(self):
-              self.send_response(200)
-              self.send_header('Content-Type', 'application/json')
-              self.end_headers()
-              self.wfile.write(json.dumps({'post_view': {'post': {'id': 101, 'name': 'lemmy_test_post'}}}).encode())
-          def do_GET(self):
-              self.send_response(200)
-              self.send_header('Content-Type', 'application/json')
-              self.end_headers()
-              self.wfile.write(b'{\"status\": \"live\"}')
-      socketserver.TCPServer(('0.0.0.0', 8536), H).serve_forever()
-      "
+    volumes:
+      - ./app/mocks/lemmy_service.py:/app/lemmy_service.py:ro
+    command: python -u /app/lemmy_service.py
     restart: unless-stopped
 
 volumes:

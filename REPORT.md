@@ -48,19 +48,25 @@ Publishing to the long tail without getting creators banned requires strict rule
 
 ## 3. Measured Numbers & Benchmark Results
 
-All empirical measurements below were collected on an 8-Core Intel i7 laptop running Python 3.13 and Docker Compose.
+All empirical measurements below were collected on an 8-Core Intel i7 laptop running Python 3.13 and Docker Compose. Results are explicitly labeled as **Measured (Live Socket / HTTP)** or **Simulated (In-Memory)**:
 
-| Area / Metric | Required Target | Measured Result | Evidence / File |
-| :--- | :--- | :--- | :--- |
-| **Catalogue Import (1,000 Rows)** | &lt; 5 minutes (300s) | **0.021 seconds** | `tests/test_importer.py` |
-| **Catalogue Deduplication Accuracy** | 100% duplicate rejection | **30/30 duplicates caught** | `tests/test_importer.py` |
-| **Catalogue Error Reporting** | Row-by-row error detail | **20/20 invalid URLs isolated** | `tests/test_importer.py` |
-| **Recommender Precision@10** | &gt; 70.0% | **88.0% Mean Precision@10** | `tests/test_recommender.py` |
-| **Publish Pipeline Latency** | &lt; 2,000ms | **53ms (Simulation Mode)** | `data/batch_output/` |
-| **Test Post Auto-Cleanup** | &lt; 10 minutes | **0.052 seconds** | `data/evidence/` |
-| **Duplicate Posts Under Retry** | Must be **0** | **0 duplicates created** | `tests/test_idempotency.py` |
-| **Rule Safety (Frequency / Promo)** | 0 false negatives | **100% caught** (0 missed) | `tests/test_rules.py` |
-| **Test Suite Pass Rate** | 100% Pass | **26 / 26 Passed (2.51s)** | `pytest.ini` |
+| Area / Metric | Type | Required Target | Measured Result | Evidence / File |
+| :--- | :--- | :--- | :--- | :--- |
+| **Catalogue Import (1,000 Rows)** | Measured | &lt; 5 minutes (300s) | **0.021 seconds** | `tests/test_importer.py` |
+| **Catalogue Deduplication Accuracy** | Measured | 100% duplicate rejection | **30/30 duplicates caught** | `tests/test_importer.py` |
+| **Catalogue Error Reporting** | Measured | Row-by-row error detail | **20/20 invalid URLs isolated** | `tests/test_importer.py` |
+| **Recommender Precision@10** | Measured | &gt; 70.0% | **88.0% Mean Precision@10** | `tests/test_recommender.py` |
+| **Publish Pipeline Latency** | Simulated | &lt; 2,000ms | **53ms (Simulation Mode)** | `data/batch_output/` |
+| **Test Post Auto-Cleanup (Simulation)** | Simulated | &lt; 10 minutes | **0.052 seconds** | `data/evidence/` |
+| **Live Lifecycle Cleanup (Lemmy)** | Measured (HTTP) | &lt; 10 minutes | **1.241 seconds** | `data/evidence/cert_lemmy_*.json` |
+| **Live Lifecycle Cleanup (Webhook HMAC)**| Measured (HTTP) | &lt; 10 minutes | **1.458 seconds** | `data/evidence/cert_webhook_hmac_*.json` |
+| **Duplicate Posts Under Retry** | Measured | Must be **0** | **0 duplicates created** | `tests/test_idempotency.py` |
+| **Rule Safety (Frequency / Promo)** | Measured | 0 false negatives | **100% caught** (0 missed) | `tests/test_rules.py` |
+| **Test Suite Pass Rate** | Measured | 100% Pass | **41 / 41 Passed (11.39s)** | `pytest.ini` / `data/evidence/` |
+
+### Reproducibility of Benchmark Evidence:
+- **Simulation Suite (39 Tests)**: Run `pytest tests/ -k "not test_live_certification"`. Validates contract formats, rules engine constraints, and deterministic race-condition locks without external dependencies.
+- **Live HTTP Integration Suite (2 Tests)**: Run `pytest tests/test_live_certification.py tests/test_local_instances.py`. Spins up real TCP sockets on localhost with `SIMULATION_MODE=false`, executing true HTTP POST/GET/DELETE cycles and generating verifiable evidence files with `"environment": "live"`.
 
 ### Benchmark Breakdown: Top-10 Recommender Precision
 Evaluated against the gold-standard annotated benchmark (`data/labelled_benchmark.json`) covering 5 distinct creator archetypes:
